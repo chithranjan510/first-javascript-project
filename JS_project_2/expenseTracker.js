@@ -9,114 +9,167 @@ form.addEventListener('submit', add);
 ul.addEventListener('click', modify);
 addEventListener('DOMContentLoaded', displayExpenseData);
 
-function add(e) {
+async function add(e) {
 
     e.preventDefault();
 
-    let li = document.createElement('li');
-    let text = document.createTextNode(expenseAmount.value + "-" + expenseType.value + "-" + description.value);
-    // console.log(text);
-
-    let deleteButton = document.createElement('button');
-    let editButton = document.createElement('button');
-
-    deleteButton.appendChild(document.createTextNode('Delete'));
-    editButton.appendChild(document.createTextNode('Edit'));
-
-    deleteButton.className = 'del_btn';
-    editButton.className = 'edit_btn';
-
-    li.appendChild(text);
-    li.appendChild(editButton);
-    li.appendChild(deleteButton);
-    ul.appendChild(li);
-    
     let expenseObject = {
         expenseAmount: expenseAmount.value,
         expenseType: expenseType.value,
         description: description.value
     }
 
-    axios.post('https://crudcrud.com/api/7667491dfa66490ab9e90bf20017aea2/expenseData', expenseObject)
-    .then(() => {console.log('Expense Data was posted successfully')})
-    .catch((err) => {console.log(err)});
+    // axios.post('https://crudcrud.com/api/81be5f8bcaba4d599e62729d8172fc7b/expenseData', expenseObject)
+    // .then((res) => {
+        
+    //     // let li = document.createElement('li');
+    //     // li.id = res.data._id;
+    //     // let text = document.createTextNode(expenseAmount.value + "-" + expenseType.value + "-" + description.value);
 
-    expenseAmount.value = '';
-    expenseType.value = '';
-    description.value = '';
+    //     // let deleteButton = document.createElement('button');
+    //     // let editButton = document.createElement('button');
+
+    //     // deleteButton.appendChild(document.createTextNode('Delete'));
+    //     // editButton.appendChild(document.createTextNode('Edit'));
+
+    //     // deleteButton.className = 'del_btn';
+    //     // editButton.className = 'edit_btn';
+
+    //     // li.appendChild(text);
+    //     // li.appendChild(editButton);
+    //     // li.appendChild(deleteButton);
+    //     // ul.appendChild(li);
+
+    //     expenseAmount.value = '';
+    //     expenseType.value = '';
+    //     description.value = '';
+
+    //     let list = `<li id=${res.data._id}>${res.data.expenseAmount + "-" + res.data.expenseType + "-" + res.data.description}
+    //         <button class = edit_btn>Edit</button>
+    //         <button class = del_btn>Delete</button>
+    //         </li>`;
+
+    //     ul.innerHTML += list; 
+
+    // })
+    // .catch((err) => {console.log(err)});
+
+
+    try {
+        let expenses = await axios.post('https://crudcrud.com/api/81be5f8bcaba4d599e62729d8172fc7b/expenseData', expenseObject);
+
+        expenseAmount.value = '';
+        expenseType.value = '';
+        description.value = '';
+        
+        let list = `<li id=${expenses.data._id}>${expenses.data.expenseAmount + "-" + expenses.data.expenseType + "-" + expenses.data.description}
+        <button class=edit_btn>Edit</button>
+        <button class=del_btn>Delete</button>
+        </li>`;
+
+        ul.innerHTML += list; 
+    }
+    catch(err) {
+        console.log(err);
+    }
+
 }
 
-function displayExpenseData(e) {
+async function displayExpenseData(e) {
 
-    axios.get('https://crudcrud.com/api/7667491dfa66490ab9e90bf20017aea2/expenseData')
-    .then((expenses) => {
+    // axios.get('https://crudcrud.com/api/81be5f8bcaba4d599e62729d8172fc7b/expenseData')
+    // .then((expenses) => {
+    //     expenses.data.forEach((expense) => {
+
+    //         // let li = document.createElement('li');
+    //         // li.id = expense._id;
+    //         // let text = document.createTextNode(expense.expenseAmount + "-" + expense.expenseType + "-" + expense.description);
+
+    //         // let deleteButton = document.createElement('button');
+    //         // let editButton = document.createElement('button');
+
+    //         // deleteButton.appendChild(document.createTextNode('Delete'));
+    //         // editButton.appendChild(document.createTextNode('Edit'));
+
+    //         // deleteButton.className = 'del_btn';
+    //         // editButton.className = 'edit_btn';
+
+    //         // li.appendChild(text);
+    //         // li.appendChild(editButton);
+    //         // li.appendChild(deleteButton);
+    //         // ul.appendChild(li);
+
+    //         let list = `<li id=${expense._id}>${expense.expenseAmount + "-" + expense.expenseType + "-" + expense.description}
+    //         <button class=edit_btn>Edit</button>
+    //         <button class=del_btn>Delete</button>
+    //         </li>`;
+
+    //         ul.innerHTML += list; 
+
+    //     })
+    // })
+    // .catch((err) => {console.log(err)});
+
+    try {
+        let expenses = await axios.get('https://crudcrud.com/api/81be5f8bcaba4d599e62729d8172fc7b/expenseData');
         expenses.data.forEach((expense) => {
 
-            let li = document.createElement('li');
-            let text = document.createTextNode(expense.expenseAmount + "-" + expense.expenseType + "-" + expense.description);
+            let list = `<li id=${expense._id}>${expense.expenseAmount + "-" + expense.expenseType + "-" + expense.description}
+            <button class=edit_btn>Edit</button>
+            <button class=del_btn>Delete</button>
+            </li>`;
 
-            let deleteButton = document.createElement('button');
-            let editButton = document.createElement('button');
-
-            deleteButton.appendChild(document.createTextNode('Delete'));
-            editButton.appendChild(document.createTextNode('Edit'));
-
-            deleteButton.className = 'del_btn';
-            editButton.className = 'edit_btn';
-
-            li.appendChild(text);
-            li.appendChild(editButton);
-            li.appendChild(deleteButton);
-            ul.appendChild(li);
-
+            ul.innerHTML += list; 
         })
-    })
-    .catch((err) => {console.log(err)});
+    }
+    catch(err) {
+        console.log(err);
+    }
     
 }
 
 
 
-function modify(e) {
+async function modify(e) {
     if (e.target.classList.contains('edit_btn')) {
 
-        let data = e.target.parentElement.childNodes[0].nodeValue;
+        const details = e.target.parentElement.childNodes[0].nodeValue.split('-');
+        // console.log(details);
 
-        axios.get('https://crudcrud.com/api/7667491dfa66490ab9e90bf20017aea2/expenseData')
-        .then((expenses) => {
-            expenses.data.forEach((expense) => {
-                expenseAmount.value = expense.expenseAmount;
-                expenseType.value = expense.expenseType;
-                description.value = expense.description;
-                if(data.includes(expense.expenseAmount) && data.includes(expense.expenseType) && data.includes(expense.description)) {
-                    axios.delete(`https://crudcrud.com/api/7667491dfa66490ab9e90bf20017aea2/expenseData/${expense._id}`)
-                    .then(() => {console.log('Expense data got deleted, please update the with new one')})
-                    .catch((err) => {console.log(err)})
-                }
-            })
-        })
-        .catch((err) => {console.log(err)});
+        // axios.delete(`https://crudcrud.com/api/81be5f8bcaba4d599e62729d8172fc7b/expenseData/${e.target.parentElement.id}`)
+        // .then(() => {
+        //     ul.removeChild(e.target.parentElement);
+        // })
+        // .catch((err) => {console.log(err)})
 
-        ul.removeChild(e.target.parentElement);
+        try {
+            await axios.delete(`https://crudcrud.com/api/81be5f8bcaba4d599e62729d8172fc7b/expenseData/${e.target.parentElement.id}`);
+            ul.removeChild(e.target.parentElement);
+            expenseAmount.value = details[0];
+            expenseType.value = details[1];
+            description.value = details[2];
+        }
+        catch(err) {
+            console.log(err);
+        }
+        
     }
 
     if (e.target.classList.contains('del_btn')) {
 
-        let data = e.target.parentElement.childNodes[0].nodeValue;
-        // console.log(data);
-        
-        axios.get('https://crudcrud.com/api/7667491dfa66490ab9e90bf20017aea2/expenseData')
-        .then((expenses) => {
-            expenses.data.forEach((expense) => {
-                if(data.includes(expense.expenseAmount) && data.includes(expense.expenseType) && data.includes(expense.description)) {
-                    axios.delete(`https://crudcrud.com/api/7667491dfa66490ab9e90bf20017aea2/expenseData/${expense._id}`)
-                    .then(() => {console.log('Expense data got deleted')})
-                    .catch((err) => {console.log(err)})
-                }
-            })
-        })
-        .catch((err) => {console.log(err)});
+        // axios.delete(`https://crudcrud.com/api/81be5f8bcaba4d599e62729d8172fc7b/expenseData/${e.target.parentElement.id}`)
+        // .then(() => {
+        //     ul.removeChild(e.target.parentElement);
+        // })
+        // .catch((err) => {console.log(err)})
 
-        ul.removeChild(e.target.parentElement);
+
+        try {
+            await axios.delete(`https://crudcrud.com/api/81be5f8bcaba4d599e62729d8172fc7b/expenseData/${e.target.parentElement.id}`);
+            ul.removeChild(e.target.parentElement);
+        }
+        catch(err) {
+            console.log(err);
+        }
     }
 }
