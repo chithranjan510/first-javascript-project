@@ -3,173 +3,105 @@ let expenseType = document.querySelector('#expense_type');
 let description = document.querySelector('.description');
 
 let form = document.querySelector('.expense_form');
+let submitButton = document.querySelector('.add_expense_btn');
 let ul = document.querySelector('.expense_list');
 
+// console.log(submitButton.textContent === 'Add Expense');
+
 form.addEventListener('submit', add);
-ul.addEventListener('click', modify);
 addEventListener('DOMContentLoaded', displayExpenseData);
 
 async function add(e) {
+  e.preventDefault();
 
-    e.preventDefault();
+  let expenseObject = {
+    expenseAmount: expenseAmount.value,
+    expenseType: expenseType.value,
+    description: description.value,
+  };
 
-    let expenseObject = {
-        expenseAmount: expenseAmount.value,
-        expenseType: expenseType.value,
-        description: description.value
+  try {
+    let expenses;
+    if (submitButton.textContent.toLowerCase() === 'edit') {
+      expenses = await axios.put(
+        `http://localhost:3000/expense/edit-expense/${e.target.id}`,
+        expenseObject
+      );
+      submitButton.textContent = 'Add Expense';
+      console.log(expenses);
+    } else {
+      expenses = await axios.post(
+        'http://localhost:3000/expense/add-expense',
+        expenseObject
+      );
     }
 
-    // axios.post('https://crudcrud.com/api/81be5f8bcaba4d599e62729d8172fc7b/expenseData', expenseObject)
-    // .then((res) => {
-        
-    //     // let li = document.createElement('li');
-    //     // li.id = res.data._id;
-    //     // let text = document.createTextNode(expenseAmount.value + "-" + expenseType.value + "-" + description.value);
+    expenseAmount.value = '';
+    expenseType.value = '';
+    description.value = '';
 
-    //     // let deleteButton = document.createElement('button');
-    //     // let editButton = document.createElement('button');
-
-    //     // deleteButton.appendChild(document.createTextNode('Delete'));
-    //     // editButton.appendChild(document.createTextNode('Edit'));
-
-    //     // deleteButton.className = 'del_btn';
-    //     // editButton.className = 'edit_btn';
-
-    //     // li.appendChild(text);
-    //     // li.appendChild(editButton);
-    //     // li.appendChild(deleteButton);
-    //     // ul.appendChild(li);
-
-    //     expenseAmount.value = '';
-    //     expenseType.value = '';
-    //     description.value = '';
-
-    //     let list = `<li id=${res.data._id}>${res.data.expenseAmount + "-" + res.data.expenseType + "-" + res.data.description}
-    //         <button class = edit_btn>Edit</button>
-    //         <button class = del_btn>Delete</button>
-    //         </li>`;
-
-    //     ul.innerHTML += list; 
-
-    // })
-    // .catch((err) => {console.log(err)});
-
-
-    try {
-        let expenses = await axios.post('https://crudcrud.com/api/81be5f8bcaba4d599e62729d8172fc7b/expenseData', expenseObject);
-
-        expenseAmount.value = '';
-        expenseType.value = '';
-        description.value = '';
-        
-        let list = `<li id=${expenses.data._id}>${expenses.data.expenseAmount + "-" + expenses.data.expenseType + "-" + expenses.data.description}
-        <button class=edit_btn>Edit</button>
-        <button class=del_btn>Delete</button>
+    let list = `<li id=${expenses.data.id}>${
+      expenses.data.amount +
+      '-' +
+      expenses.data.category +
+      '-' +
+      expenses.data.description
+    }
+        <button class=edit_btn onClick="edit(event,'${expenses.data.id}','${
+      expenses.data.amount
+    }','${expenses.data.category}','${
+      expenses.data.description
+    }')">Edit</button>
+        <button class=del_btn onClick="del(event, ${
+          expenses.data.id
+        }')">Delete</button>
         </li>`;
 
-        ul.innerHTML += list; 
-    }
-    catch(err) {
-        console.log(err);
-    }
-
+    ul.innerHTML += list;
+  } catch (err) {
+    console.log(err);
+  }
 }
 
 async function displayExpenseData(e) {
-
-    // axios.get('https://crudcrud.com/api/81be5f8bcaba4d599e62729d8172fc7b/expenseData')
-    // .then((expenses) => {
-    //     expenses.data.forEach((expense) => {
-
-    //         // let li = document.createElement('li');
-    //         // li.id = expense._id;
-    //         // let text = document.createTextNode(expense.expenseAmount + "-" + expense.expenseType + "-" + expense.description);
-
-    //         // let deleteButton = document.createElement('button');
-    //         // let editButton = document.createElement('button');
-
-    //         // deleteButton.appendChild(document.createTextNode('Delete'));
-    //         // editButton.appendChild(document.createTextNode('Edit'));
-
-    //         // deleteButton.className = 'del_btn';
-    //         // editButton.className = 'edit_btn';
-
-    //         // li.appendChild(text);
-    //         // li.appendChild(editButton);
-    //         // li.appendChild(deleteButton);
-    //         // ul.appendChild(li);
-
-    //         let list = `<li id=${expense._id}>${expense.expenseAmount + "-" + expense.expenseType + "-" + expense.description}
-    //         <button class=edit_btn>Edit</button>
-    //         <button class=del_btn>Delete</button>
-    //         </li>`;
-
-    //         ul.innerHTML += list; 
-
-    //     })
-    // })
-    // .catch((err) => {console.log(err)});
-
-    try {
-        let expenses = await axios.get('https://crudcrud.com/api/81be5f8bcaba4d599e62729d8172fc7b/expenseData');
-        expenses.data.forEach((expense) => {
-
-            let list = `<li id=${expense._id}>${expense.expenseAmount + "-" + expense.expenseType + "-" + expense.description}
-            <button class=edit_btn>Edit</button>
-            <button class=del_btn>Delete</button>
+  try {
+    let expenses = await axios.get(
+      'http://localhost:3000/expense/get-expenseList'
+    );
+    // console.log(expenses);
+    expenses.data.forEach((expense) => {
+      let list = `<li id=${expense.id}>${
+        expense.amount + '-' + expense.category + '-' + expense.description
+      }
+            <button class=edit_btn onClick="edit(event, '${expense.id}', '${
+        expense.amount
+      }','${expense.category}','${expense.description}')">Edit</button>
+            <button class=del_btn onClick="del(event, '${
+              expense.id
+            }')">Delete</button>
             </li>`;
 
-            ul.innerHTML += list; 
-        })
-    }
-    catch(err) {
-        console.log(err);
-    }
-    
+      ul.innerHTML += list;
+    });
+  } catch (err) {
+    console.log(err);
+  }
 }
 
+async function edit(e, id, amount, type, desc) {
+  ul.removeChild(e.target.parentElement);
+  expenseAmount.value = amount;
+  expenseType.value = type;
+  description.value = desc;
+  form.id = id + '';
+  submitButton.textContent = 'Edit';
+}
 
-
-async function modify(e) {
-    if (e.target.classList.contains('edit_btn')) {
-
-        const details = e.target.parentElement.childNodes[0].nodeValue.split('-');
-        // console.log(details);
-
-        // axios.delete(`https://crudcrud.com/api/81be5f8bcaba4d599e62729d8172fc7b/expenseData/${e.target.parentElement.id}`)
-        // .then(() => {
-        //     ul.removeChild(e.target.parentElement);
-        // })
-        // .catch((err) => {console.log(err)})
-
-        try {
-            await axios.delete(`https://crudcrud.com/api/81be5f8bcaba4d599e62729d8172fc7b/expenseData/${e.target.parentElement.id}`);
-            ul.removeChild(e.target.parentElement);
-            expenseAmount.value = details[0];
-            expenseType.value = details[1];
-            description.value = details[2];
-        }
-        catch(err) {
-            console.log(err);
-        }
-        
-    }
-
-    if (e.target.classList.contains('del_btn')) {
-
-        // axios.delete(`https://crudcrud.com/api/81be5f8bcaba4d599e62729d8172fc7b/expenseData/${e.target.parentElement.id}`)
-        // .then(() => {
-        //     ul.removeChild(e.target.parentElement);
-        // })
-        // .catch((err) => {console.log(err)})
-
-
-        try {
-            await axios.delete(`https://crudcrud.com/api/81be5f8bcaba4d599e62729d8172fc7b/expenseData/${e.target.parentElement.id}`);
-            ul.removeChild(e.target.parentElement);
-        }
-        catch(err) {
-            console.log(err);
-        }
-    }
+async function del(e, id) {
+  try {
+    await axios.delete(`http://localhost:3000/expense/delete-expense/${id}`);
+    ul.removeChild(e.target.parentElement);
+  } catch (err) {
+    console.log(err);
+  }
 }
